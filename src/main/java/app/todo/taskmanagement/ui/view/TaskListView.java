@@ -5,6 +5,7 @@ import app.todo.taskmanagement.domain.Task;
 import app.todo.taskmanagement.service.TaskService;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.datepicker.DatePicker;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Main;
@@ -59,6 +60,17 @@ public class TaskListView extends Main {
 
         taskGrid = new Grid<>();
         taskGrid.setItems(query -> taskService.list(toSpringPageRequest(query)).stream());
+
+        taskGrid.addComponentColumn(task -> {
+                        Checkbox checkbox = new Checkbox(task.isDone());
+                        checkbox.addValueChangeListener(event -> {
+                                task.setDone(event.getValue());
+                                taskService.updateTask(task); // Make sure you have this method to persist
+                                // changes
+                        });
+                        return checkbox;
+                }).setHeader("Done");
+
         taskGrid.addColumn(Task::getDescription).setHeader("Description");
         taskGrid.addColumn(task -> Optional.ofNullable(task.getDueDate()).map(dateFormatter::format).orElse("Never"))
                 .setHeader("Due Date");
