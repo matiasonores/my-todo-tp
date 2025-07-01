@@ -5,6 +5,7 @@ import app.todo.taskmanagement.domain.Persona;
 import app.todo.taskmanagement.service.PersonaService;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Main;
 import com.vaadin.flow.component.notification.Notification;
@@ -82,7 +83,7 @@ public class PersonaListView extends Main {
         personaGrid.addComponentColumn(persona -> {
             Button editButton = new Button("Editar", e -> openEditPersonaDialog(persona));
             editButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
-
+            /*
             Button deleteButton = new Button("Eliminar", click -> {
                 personaService.deletePersona(persona.getId());
                 personaGrid.getDataProvider().refreshAll();
@@ -90,7 +91,26 @@ public class PersonaListView extends Main {
                         .addThemeVariants(NotificationVariant.LUMO_CONTRAST);
             });
             deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL);
+            */	
+            Button deleteButton = new Button("Eliminar");
+            deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL);
+            deleteButton.addClickListener(e -> {
+                ConfirmDialog dialog = new ConfirmDialog();
+                dialog.setHeader("¿Estás seguro?");
+                dialog.setText("Al eliminar esta persona, también se eliminarán todas las tareas que tenga asignadas.");
+                dialog.setCancelable(true);
+                dialog.setConfirmText("Sí, eliminar");
+                dialog.setCancelText("Cancelar");
 
+                dialog.addConfirmListener(event -> {
+                    personaService.deletePersona(persona.getId());
+                    personaGrid.getDataProvider().refreshAll();
+                    Notification.show("Persona eliminada", 3000, Notification.Position.BOTTOM_END)
+                            .addThemeVariants(NotificationVariant.LUMO_ERROR);
+                });
+
+                dialog.open();
+            });
             HorizontalLayout actionsLayout = new HorizontalLayout(editButton, deleteButton);
             actionsLayout.setSpacing(true);
             return actionsLayout;

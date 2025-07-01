@@ -69,4 +69,16 @@ public class Task extends AbstractEntity<Long> {
     public void setDueDate(@Nullable LocalDate dueDate) {
         this.dueDate = dueDate;
     }
+    
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "persona_id", nullable = false)
+    private Persona persona;
+
+    public Persona getPersona() {
+        return persona;
+    }
+
+    public void setPersona(Persona persona) {
+        this.persona = persona;
+    }
 }

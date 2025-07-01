@@ -1,5 +1,6 @@
 package app.todo.taskmanagement.service;
 
+import app.todo.taskmanagement.domain.Persona;
 import app.todo.taskmanagement.domain.Task;
 import app.todo.taskmanagement.domain.TaskRepository;
 import org.jspecify.annotations.Nullable;
@@ -25,15 +26,13 @@ public class TaskService {
         this.clock = clock;
     }
 
-    public void createTask(String description, @Nullable LocalDate dueDate) {
-        if ("fail".equals(description)) {
-            throw new RuntimeException("This is for testing the error handler");
-        }
+    public void createTask(String description, @Nullable LocalDate dueDate, Persona persona) {
         var task = new Task();
         task.setDescription(description);
         task.setCreationDate(clock.instant());
         task.setDueDate(dueDate);
         task.setDone(false);
+        task.setPersona(persona); // vínculo con la persona
         taskRepository.saveAndFlush(task);
     }
 

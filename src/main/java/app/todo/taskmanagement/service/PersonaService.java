@@ -36,6 +36,9 @@ public class PersonaService {
     public List<Persona> list(Pageable pageable) {
         return personaRepository.findAllBy(pageable).toList();
     }
+    public List<Persona> listAll() {
+        return personaRepository.findAll();
+    }
     public void deletePersona(Long id) {
         personaRepository.deleteById(id);
     }
