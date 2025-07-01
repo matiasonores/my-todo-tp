@@ -7,6 +7,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.datepicker.DatePicker;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Main;
 import com.vaadin.flow.component.notification.Notification;
@@ -22,6 +23,9 @@ import java.time.Clock;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.Optional;
+
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 
 import static com.vaadin.flow.spring.data.VaadinSpringDataHelpers.toSpringPageRequest;
 
@@ -75,6 +79,23 @@ public class TaskListView extends Main {
         taskGrid.addColumn(task -> Optional.ofNullable(task.getDueDate()).map(dateFormatter::format).orElse("Never"))
                 .setHeader("Due Date");
         taskGrid.addColumn(task -> dateTimeFormatter.format(task.getCreationDate())).setHeader("Creation Date");
+        taskGrid.addComponentColumn(task -> {
+            Button editButton = new Button("Editar", e -> openEditTaskDialog(task));
+            editButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
+
+            Button deleteButton = new Button("Eliminar", click -> {
+                taskService.deleteTask(task.getId());
+                taskGrid.getDataProvider().refreshAll();
+                Notification.show("Tarea eliminada", 3000, Notification.Position.BOTTOM_END)
+                        .addThemeVariants(NotificationVariant.LUMO_CONTRAST);
+            });
+            deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL);
+
+            HorizontalLayout actionsLayout = new HorizontalLayout(editButton, deleteButton);
+            actionsLayout.setSpacing(true);
+            return actionsLayout;
+        }).setHeader("Acciones");
+        
         taskGrid.setSizeFull();
 
         setSizeFull();
@@ -93,5 +114,38 @@ public class TaskListView extends Main {
         Notification.show("Task added", 3000, Notification.Position.BOTTOM_END)
                 .addThemeVariants(NotificationVariant.LUMO_SUCCESS);
     }
+    private void openEditTaskDialog(Task task) {
+        Dialog dialog = new Dialog();
+        dialog.setWidth("400px");
 
+        TextField descriptionField = new TextField("Descripción");
+        descriptionField.setValue(task.getDescription());
+        descriptionField.setMaxLength(Task.DESCRIPTION_MAX_LENGTH);
+
+        DatePicker dueDatePicker = new DatePicker("Fecha de Vencimiento");
+        dueDatePicker.setValue(Optional.ofNullable(task.getDueDate()).orElse(null));
+
+        Button saveButton = new Button("Guardar", event -> {
+            if (descriptionField.isEmpty()) {
+                Notification.show("La descripción es obligatoria", 3000, Notification.Position.BOTTOM_END);
+                return;
+            }
+
+            task.setDescription(descriptionField.getValue());
+            task.setDueDate(dueDatePicker.getValue());
+
+            taskService.updateTask(task);
+            taskGrid.getDataProvider().refreshAll();
+
+            Notification.show("Tarea actualizada", 3000, Notification.Position.BOTTOM_END);
+            dialog.close();
+        });
+        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+
+        Button cancelButton = new Button("Cancelar", e -> dialog.close());
+
+        VerticalLayout layout = new VerticalLayout(descriptionField, dueDatePicker, saveButton, cancelButton);
+        dialog.add(layout);
+        dialog.open();
+    }
 }
