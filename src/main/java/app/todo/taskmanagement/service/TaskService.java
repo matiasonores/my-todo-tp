@@ -33,6 +33,7 @@ public class TaskService {
         task.setDescription(description);
         task.setCreationDate(clock.instant());
         task.setDueDate(dueDate);
+        task.setDone(false);
         taskRepository.saveAndFlush(task);
     }
 
@@ -42,6 +43,10 @@ public class TaskService {
 
     public List<Task> list(Pageable pageable) {
         return taskRepository.findAllBy(pageable).toList();
+    }
+    
+    public void deleteTask(Long id) {
+        taskRepository.deleteById(id);
     }
 
 }
